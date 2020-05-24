@@ -33,3 +33,14 @@ In this final project, you will implement the missing parts in the schematic. To
 2. Make a build directory in the top level project directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./3D_object_tracking`.
+
+# SFND 2D Feature Tracking
+
+# The third project for Sensor Fusion nanodegree from Udacity.
+
+This project is primarily focused on the following topics:
+
+- Implementing a method to match bounding boxes between current and previous frames. The output should be ids of the matched regions of interest. 
+- Computing the time-to-collision for all matched 3D objects using only Lidar measurements form the matched bounding boxe between current and previous frames. 
+- Associating keypoints correspondence with bounding boxes
+- Utilizing differnt keypoint descriptors and ultimately matching the keypoints in succesive images using Brute Force/FLANN and NN/kNN
