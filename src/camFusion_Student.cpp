@@ -120,11 +120,12 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, std::string imgPath,
         cv::line(topviewImg, cv::Point(0, y), cv::Point(imageSize.width, y), cv::Scalar(255, 0, 0));
     }
 
-    // display image
-    //string windowName = "3D Objects";
-    //cv::namedWindow(windowName, 1);
-    if (saveImg) cv::imwrite(imgPath, topviewImg);
-    //cv::imshow(windowName, topviewImg);
+
+    cv::Mat resizedTopViewImg;
+
+    cv::resize(topviewImg, resizedTopViewImg, cv::Size(), 0.75, 0.75);
+    if (saveImg) cv::imwrite(imgPath, resizedTopViewImg);
+    
     if(bWait)
     {
         cv::waitKey(0); // wait for key to be pressed
@@ -133,16 +134,60 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, std::string imgPath,
 
 
 // associate a given bounding box with the keypoints it contains
-void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
+void clusterKptMatchesWithROI(BoundingBox &boundingBoxCurr, BoundingBox &boundingBoxPrev, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, 
+                    std::vector<cv::DMatch> &kptMatches, double shrinkPrct)
 {
-    // ...
-    for (cv::DMatch eachMatch : kptMatches)
+    double meanDistVal = 0;
+
+    std::vector<cv::DMatch> kptMatchesROI;
+    double minRoiDim;
+    double roiRadius;
+    
+
+    minRoiDim = std::min(boundingBoxCurr.roi.width, boundingBoxCurr.roi.height);
+    roiRadius = std::sqrt(std::pow((minRoiDim / 2.0), 2));
+
+    for (auto it = kptMatches.begin(); it != kptMatches.end(); ++it)
     {
-        if (boundingBox.roi.contains(kptsCurr[eachMatch.trainIdx].pt))
+        double kptX = (boundingBoxCurr.roi.x + boundingBoxCurr.roi.width / 2.0) - kptsCurr[it->trainIdx].pt.x;
+        double kptY = (boundingBoxCurr.roi.y + boundingBoxCurr.roi.height/ 2.0) - kptsCurr[it->trainIdx].pt.y;
+
+        double kptRadius = std::sqrt(std::pow(kptX, 2) + std::pow(kptY, 2));
+       
+        if (kptRadius < roiRadius*(1-shrinkPrct))
         {
-            boundingBox.kptMatches.push_back(eachMatch);
+            kptMatchesROI.push_back(*it);
         }
+
     }
+    for (auto it = kptMatchesROI.begin(); it != kptMatchesROI.end(); ++it)
+    {
+        meanDistVal += it->distance;
+    }
+
+    if (kptMatchesROI.size() > 0)
+    {
+        meanDistVal = meanDistVal/kptMatchesROI.size();
+    }
+    else return;
+
+    
+    for (auto it = kptMatchesROI.begin(); it != kptMatchesROI.end(); ++it)
+    {
+        
+        cv::KeyPoint kp1;
+        cv::KeyPoint kp2;
+        boundingBoxCurr.kptMatches.push_back(*it);
+            
+        kp1.pt = cv::Point(kptsCurr[it->trainIdx].pt);
+        kp2.pt = cv::Point(kptsCurr[it->queryIdx].pt);
+        kp1.size = 10.0;
+        kp2.size = 10.0;
+        boundingBoxCurr.keypoints.push_back(kp1);
+        boundingBoxPrev.keypoints.push_back(kp2);
+
+    }
+
 }
 
 
@@ -152,31 +197,39 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 {
     // computesdistance ratios between all matched keypoints
     vector<double> distRatios; // stores the distance ratios for all keypoints between curr. and prev. frame
+    double sumDistRatio = 0;
 
-    for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1; ++it1)
+    if (kptMatches.size() > 0)
     {
-        // get current keypoint and its matched partner in the prev. frame
-        cv::KeyPoint kpOuterCurr = kptsCurr.at(it1->trainIdx);
-        cv::KeyPoint kpOuterPrev = kptsPrev.at(it1->queryIdx);
+        for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1; ++it1)
+        {
+            cv::KeyPoint kpOuterCurr = kptsCurr.at(it1->trainIdx);
+            cv::KeyPoint kpOuterPrev = kptsPrev.at(it1->queryIdx);
 
-        for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end(); ++it2)
-        { 
-            double minDist = 100.0; // min. required distance
+            for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end(); ++it2)
+            { 
+                double minDist = 100.0; // min. required distance
 
-            // get next keypoint and its matched partner in the prev. frame
-            cv::KeyPoint kpInnerCurr = kptsCurr.at(it2->trainIdx);
-            cv::KeyPoint kpInnerPrev = kptsPrev.at(it2->queryIdx);
+                // get next keypoint and its matched partner in the prev. frame
+                cv::KeyPoint kpInnerCurr = kptsCurr.at(it2->trainIdx);
+                cv::KeyPoint kpInnerPrev = kptsPrev.at(it2->queryIdx);
+                // compute distances and distance ratios
+                double distCurr = cv::norm(kpOuterCurr.pt - kpInnerCurr.pt);
+                double distPrev = cv::norm(kpOuterPrev.pt - kpInnerPrev.pt);
 
-            // compute distances and distance ratios
-            double distCurr = cv::norm(kpOuterCurr.pt - kpInnerCurr.pt);
-            double distPrev = cv::norm(kpOuterPrev.pt - kpInnerPrev.pt);
-
-            if (distPrev > std::numeric_limits<double>::epsilon() && distCurr >= minDist)
-            {
-                double distRatio = distCurr / distPrev;
-                distRatios.push_back(distRatio);
-            }
-        } 
+                if (distPrev > std::numeric_limits<double>::epsilon() && distCurr >= minDist)
+                {
+                    double distRatio = distCurr / distPrev;
+                    distRatios.push_back(distRatio);
+                }
+            } 
+        }
+    }
+    else
+    {
+        //TTC = 0;
+        TTC = std::numeric_limits<double>::quiet_NaN();
+        return;
     }
 
     // only continue if list of distance ratios is not empty
@@ -189,8 +242,7 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     // Sorting the keypoints and filtering the outliers using the median distance ratio
     std::sort(distRatios.begin(), distRatios.end());
     long medIndex = floor(distRatios.size() / 2.0);
-    // double medDistRatio = distRatios.size() % 2 == 0 ? (distRatios[medIndex - 1] + distRatios[medIndex]) / 2.0 : distRatios[medIndex]; // compute median dist. ratio to remove outlier influence
-    double medDistRatio = distRatios[distRatios.size() / 2.0];
+    double medDistRatio = distRatios.size() % 2 == 0 ? (distRatios[medIndex - 1] + distRatios[medIndex]) / 2.0 : distRatios[medIndex]; // compute median dist. ratio to remove outlier influence
 
     TTC = (-1.0 / frameRate) / (1 - medDistRatio);
 }
@@ -218,8 +270,8 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
     // taking a sample out of the lidar points vector
-    bool doSampling = false;
-    int samplingPoints = 200; // how many samples
+    bool doSampling = true;
+    int samplingPoints = 150; // how many samples
 
     // calls the helper function to proccess the sampling and sorting of the lidar point vectors
     lidarPointsProcessing(lidarPointsPrev, doSampling, samplingPoints);
@@ -294,7 +346,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     {
         currFrameBoxIds.push_back(box.boxID);
     }  
-    
+
     for (int ii : currFrameBoxIds)
     {
         int max = 0;
@@ -312,20 +364,25 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             prevIndexTracker[(*it).second] = (*it).second;
 
         }
+
         int cnt = 0;
-        for (int i=0; i<maxPrevBoundingBoxIds; ++i)    
+        for (int i=0; i < prevCountTracker.size(); ++i)
         {
             cnt = prevCountTracker[i];
-            if (cnt > max)
+            if (cnt>max)
             {
                 max = cnt;
-                maxIndex = i;
-            } 
-
+                maxIndex = prevIndexTracker[i];
+            }
+            
         }
+        
         // Inserting the best matching box map
         // key: previous frame bounding box ID most likely to be the match 
         // val: current frame bounding box ID
-        bbBestMatches.insert({maxIndex, ii});
-    }   
+        if (maxIndex >= 0)
+            bbBestMatches.insert({maxIndex, ii});
+
+    }
+
 } 
