@@ -43,4 +43,52 @@ This project is primarily focused on the following topics:
 - Implementing a method to match bounding boxes between current and previous frames. The output should be ids of the matched regions of interest. 
 - Computing the time-to-collision for all matched 3D objects using only Lidar measurements form the matched bounding boxe between current and previous frames. 
 - Associating keypoints correspondence with bounding boxes
-- Utilizing differnt keypoint descriptors and ultimately matching the keypoints in succesive images using Brute Force/FLANN and NN/kNN
+- Computing the time-to-collision for all matched 3D objects using only keypoint correspondence from the matched bounding boxes between current and previous frame.
+
+## Implementation
+
+### FP.1 Match 3D objects
+'std::multimap' was used in matchBoundBoxes method to store all bounding boxes Ids of the current and previous frames. Ultimately, all the keypoint correspondence were counted and the pair with maximum occurance was selected as the best match.
+
+### FP.2 Compute TTC based on lidar
+Since some of the matched 3D objects are not exactly on the front car their corresponding lidar measurements are significantly different. Therefore, to minimize the effect of these outliers on TTC measurement, the median distance of all the 3D objects were used. It was also found that using a smaller set of lidar points which is randomly picked from the entire lidar points populations results in more reliabe TTC measurement using lidar points.
+
+```C++
+void lidarPointsProcessing(std::vector<LidarPoint> &lidarPoints, bool doSample=false, int samplingPoints=200)
+{
+    //cout << "pre size: " << lidarPoints.size() << endl;
+    
+    // Performing point sampling if it is turned on
+    if (doSample && lidarPoints.size() > samplingPoints)
+    {
+        std::random_shuffle(lidarPoints.begin(), lidarPoints.end());
+        lidarPoints.erase(lidarPoints.begin()+samplingPoints, lidarPoints.end());
+        //cout << "pre size: " << lidarPoints.size() << endl;
+    }
+
+    // sorting the lidar points based on their distance
+    std::sort(lidarPoints.begin(), lidarPoints.end(), [](LidarPoint smP, LidarPoint lrP)
+    {
+        return smP.x < lrP.x;
+    });
+}
+
+void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
+                     std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
+{
+    // taking a sample out of the lidar points vector
+    bool doSampling = true;
+    int samplingPoints = 150; // how many samples
+
+    // calls the helper function to proccess the sampling and sorting of the lidar point vectors
+    lidarPointsProcessing(lidarPointsPrev, doSampling, samplingPoints);
+    lidarPointsProcessing(lidarPointsCurr, doSampling, samplingPoints);
+    
+    // finds the distance in prev and curr frame based on the x-coord median of the lidar points 
+    double d0 = lidarPointsPrev[lidarPointsPrev.size()/2].x;
+    double d1 = lidarPointsCurr[lidarPointsCurr.size()/2].x;
+
+    // calculates the TTC in seconds
+    TTC = d1 * (1.0 / frameRate) / (d0 - d1);
+}
+```
