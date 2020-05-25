@@ -47,23 +47,20 @@ This project is primarily focused on the following topics:
 
 ## Implementation
 
-### FP.1 Match 3D objects
+### FP.1: Match 3D objects
 'std::multimap' was used in matchBoundBoxes method to store all bounding boxes Ids of the current and previous frames. Ultimately, all the keypoint correspondence were counted and the pair with maximum occurance was selected as the best match.
 
-### FP.2 Compute TTC based on lidar
+### FP.2: Compute TTC based on lidar
 Since some of the matched 3D objects are not exactly on the front car their corresponding lidar measurements are significantly different. Therefore, to minimize the effect of these outliers on TTC measurement, the median distance of all the 3D objects were used. It was also found that using a smaller set of lidar points which is randomly picked from the entire lidar points populations results in more reliabe TTC measurement using lidar points.
 
 ```C++
 void lidarPointsProcessing(std::vector<LidarPoint> &lidarPoints, bool doSample=false, int samplingPoints=200)
 {
-    //cout << "pre size: " << lidarPoints.size() << endl;
-    
     // Performing point sampling if it is turned on
     if (doSample && lidarPoints.size() > samplingPoints)
     {
         std::random_shuffle(lidarPoints.begin(), lidarPoints.end());
         lidarPoints.erase(lidarPoints.begin()+samplingPoints, lidarPoints.end());
-        //cout << "pre size: " << lidarPoints.size() << endl;
     }
 
     // sorting the lidar points based on their distance
@@ -92,3 +89,66 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     TTC = d1 * (1.0 / frameRate) / (d0 - d1);
 }
 ```
+
+### FP.3: Associate Keypoint Correspondence with Bounding Boxes
+The purpose of this section is to loop over all the bounding boxes and check each matched keypoint. Those keypoints that are within the region of interest (roi) were returned as the keypoint cluster in roi. 
+
+```C++
+// associate a given bounding box with the keypoints it contains
+void clusterKptMatchesWithROI(BoundingBox &boundingBoxCurr, BoundingBox &boundingBoxPrev, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, 
+                    std::vector<cv::DMatch> &kptMatches, double shrinkPrct)
+{
+    double meanDistVal = 0;
+
+    std::vector<cv::DMatch> kptMatchesROI;
+    double minRoiDim;
+    double roiRadius;
+    
+
+    minRoiDim = std::min(boundingBoxCurr.roi.width, boundingBoxCurr.roi.height);
+    roiRadius = std::sqrt(std::pow((minRoiDim / 2.0), 2));
+
+    for (auto it = kptMatches.begin(); it != kptMatches.end(); ++it)
+    {
+        double kptX = (boundingBoxCurr.roi.x + boundingBoxCurr.roi.width / 2.0) - kptsCurr[it->trainIdx].pt.x;
+        double kptY = (boundingBoxCurr.roi.y + boundingBoxCurr.roi.height/ 2.0) - kptsCurr[it->trainIdx].pt.y;
+
+        double kptRadius = std::sqrt(std::pow(kptX, 2) + std::pow(kptY, 2));
+       
+        if (kptRadius < roiRadius*(1-shrinkPrct))
+        {
+            kptMatchesROI.push_back(*it);
+        }
+
+    }
+    for (auto it = kptMatchesROI.begin(); it != kptMatchesROI.end(); ++it)
+    {
+        meanDistVal += it->distance;
+    }
+
+    if (kptMatchesROI.size() > 0)
+    {
+        meanDistVal = meanDistVal/kptMatchesROI.size();
+    }
+    else return;
+
+    
+    for (auto it = kptMatchesROI.begin(); it != kptMatchesROI.end(); ++it)
+    {
+        
+        cv::KeyPoint kp1;
+        cv::KeyPoint kp2;
+        boundingBoxCurr.kptMatches.push_back(*it);
+            
+        kp1.pt = cv::Point(kptsCurr[it->trainIdx].pt);
+        kp2.pt = cv::Point(kptsCurr[it->queryIdx].pt);
+        kp1.size = 10.0;
+        kp2.size = 10.0;
+        boundingBoxCurr.keypoints.push_back(kp1);
+        boundingBoxPrev.keypoints.push_back(kp2);
+
+    }
+}
+```
+
+### FP. 4: Computing camera-based TTC
