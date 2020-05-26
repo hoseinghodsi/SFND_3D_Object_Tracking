@@ -259,12 +259,12 @@ For this part, several detector/descriptor pairs were empoloyed to find the came
 
 ## Top detector/descriptor pair for rectangular full-roi (mean difference in TTC):
 
-1- SHITOMASI/SIFT -> 0.336 s.
-2- SIFT/SIFT -> 0.478 s.
-3- SIFT/BRISK -> 0.450 s.
+1. SHITOMASI/SIFT -> 0.336 s.
+2. SIFT/SIFT -> 0.478 s.
+3. SIFT/BRISK -> 0.450 s.
 
 ## Top detector/descriptor pair for an inscribed circle roi (mean difference in TTC):
 
-1- SHITOMASI/SIFT -> 0.336 s.
-2- SIFT/SIFT -> 0.478 s.
-3- SIFT/BRISK -> 0.450 s.
+1. SHITOMASI/SIFT -> 0.005 s.
+2. AKAZE/SIFT -> 0.013 s.
+3. SHITOMASI/ORB -> 0.021 s.
