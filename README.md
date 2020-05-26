@@ -213,7 +213,7 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 
 ```
 
-## Performance evaluation
+## Performance evaluation 1
 I could not find any unreasonable TTC measurement from lidar as it it provided in the PerformanceEvaluation.csv file. 
 However, I found the camera-based TTC measurement is the most unreliable method. Two examples with camera-based TTC measurements that do not plausible are shown in the following figure. 
 
@@ -241,4 +241,7 @@ I have implemented an additional filter to reduce the effect of the wrong points
 Figure 3: As seen in (b) there are many matched keypoints found that are not actually representing the front car (they are highlighted in the shown yellow areas). To imporve TTC calculation, a circlular sub-roi was created to furhter filter out the keypoints, shown in (d). This process has improved TTC calculation generally among most of detector/descriptor pairs.
 
 
-ad
+## Performance evaluation 2
+For this part, several detector/descriptor pairs were empoloyed to find the camera-based TTC. Based on the improvement section described above, I also incorporated inscribed circle roi and two additional filters that are bascially the inscribed circle roi; whoever their diameters are 97.5% and 95% of the actual inscribed circle. 
+
+<img src="results/Figs/ResultsTable.png">
