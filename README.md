@@ -223,8 +223,13 @@ Case 1: Detector: BRISK, Descriptor: ORB, Frame 6
 
 _Figure 1: As it can be seen, the camera-based TTC is significantly larger than the Lidar-based TTC. I think there reason behind this issus is the fact that at some frames there are too many mismatched keypoints. When I wanted to find the euclidean distance between these mistmatched keypoints it would results into a either very big previous distance or small current distance. The outcome of both of these scenarios is that the distRatio variable will be much greater than of those variables calculated based on properly matched keypoints. If the number of these outliers grow beyond a point, the median filter will not be able to filter the outlier properly anymore and as a result an unreasonable TTC will be returned._
 
+
 Case 2: Detector: FAST, Descriptor: BRISK, Frame 5 
 
 <img src="results/Figs/FAST-BRISK-Frame5-Rect.png">
+_Figure 2: 
+LIDAR  TTC: 15.91 s
+CAMERA TTC: 99.56 s_
+
 
 case 3: 
