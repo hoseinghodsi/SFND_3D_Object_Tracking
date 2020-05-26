@@ -217,9 +217,11 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 I could not find any unreasonable TTC measurement from lidar as it it provided in the PerformanceEvaluation.csv file. 
 However, I found the camera-based TTC measurement is the most unreliable method. Two examples with camera-based TTC measurements that do not plausible are shown in the following figure. 
 
-Case 1:
+Case 1: Detector: BRISK, Descriptor: ORB, Frame 6
+
 <img src="results/Figs/BRISK-ORB-Frame6-Rect.png">
-_Figure 1: Detector: BRISK, Descriptor: ORB, Frame 6_
+
+_Figure 1: As it can be seen, the camera-based TTC is significantly larger than the Lidar-based TTC. I think there reason behind this issus is the fact that at some frames there are too many mismatched keypoints. When I wanted to find the euclidean distance between these mistmatched keypoints it would results into a either very big previous distance or small current distance. The outcome of both of these scenarios is that the distRatio variable will be much greater than of those variables calculated based on properly matched keypoints. If the number of these outliers grow beyond a point, the median filter will not be able to filter the outlier properly anymore and as a result an unreasonable TTC will be returned.   _
 
 Case 2:
 
