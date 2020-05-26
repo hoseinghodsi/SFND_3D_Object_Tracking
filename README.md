@@ -218,4 +218,4 @@ I could not find any unreasonable TTC measurement from lidar as it it provided i
 However, I found the camera-based TTC measurement is the most unreliable method. Two examples with camera-based TTC measurements that do not plausible are shown in the following figure. 
 
 Case I:
-<img src="https://github.com/SFND_3D_Object_Tracking/results/figs/BRISK-ORB-Frame6-Rect.png">
+![TTC measurement between frame 6 and 5 - Detector: BRISK - Descriptor: ORB](results/figs/BRISK-ORB-Frame6-Rect.png)
