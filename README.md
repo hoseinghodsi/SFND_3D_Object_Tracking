@@ -258,6 +258,13 @@ For this part, several detector/descriptor pairs were empoloyed to find the came
 4- It can be concluded that the best inscribed-circle roi is the unshrinked version. It has yeilded a 35.6% improvement in reducing the differene in TTC measurements. Other inscriber-circle approaches were found to be unreliable as many important keypoints were filtered out. 
 
 ## Top detector/descriptor pair for rectangular full-roi (mean difference in TTC):
-1- SHITOMASI/SIFT -> 0.336 s
-2- SIFT/SIFT -> 0.478 s
-3- SIFT/BRISK -> 0.450 s
+
+1- SHITOMASI/SIFT -> 0.336 s.
+2- SIFT/SIFT -> 0.478 s.
+3- SIFT/BRISK -> 0.450 s.
+
+## Top detector/descriptor pair for an inscribed circle roi (mean difference in TTC):
+
+1- SHITOMASI/SIFT -> 0.336 s.
+2- SIFT/SIFT -> 0.478 s.
+3- SIFT/BRISK -> 0.450 s.
