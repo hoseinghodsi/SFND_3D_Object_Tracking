@@ -217,6 +217,9 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 I could not find any unreasonable TTC measurement from lidar as it it provided in the PerformanceEvaluation.csv file. 
 However, I found the camera-based TTC measurement is the most unreliable method. Two examples with camera-based TTC measurements that do not plausible are shown in the following figure. 
 
-Case I:
-<img src="results/figs/BRISK-ORB-Frame6-Rect.png" width="700" height="400" />
+Case 1:
+<img src="results/Figs/BRISK-ORB-Frame6-Rect.png">
+_Figure 1: Detector: BRISK, Descriptor: ORB, Frame 6_
+
+Case 2:
 
