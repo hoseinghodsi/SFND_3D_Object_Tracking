@@ -217,26 +217,28 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 I could not find any unreasonable TTC measurement from lidar as it it provided in the PerformanceEvaluation.csv file. 
 However, I found the camera-based TTC measurement is the most unreliable method. Two examples with camera-based TTC measurements that do not plausible are shown in the following figure. 
 
-Case 1: Detector: BRISK, Descriptor: ORB, Frame 6
+
+### Case 1: Detector: BRISK, Descriptor: ORB, Frame 6
 
 <img src="results/Figs/BRISK-ORB-Frame6-Rect.png">
 
-_Figure 1: As it can be seen, the camera-based TTC is significantly larger than the Lidar-based TTC. I think there reason behind this issus is the fact that at some frames there are too many mismatched keypoints. When I wanted to find the euclidean distance between these mistmatched keypoints it would results into a either very big previous distance or small current distance. The outcome of both of these scenarios is that the distRatio variable will be much greater than of those variables calculated based on properly matched keypoints. If the number of these outliers grow beyond a point, the median filter will not be able to filter the outlier properly anymore and as a result an unreasonable TTC will be returned._
+Figure 1: As it can be seen, the camera-based TTC is significantly larger than the Lidar-based TTC. I think there reason behind this issus is the fact that at some frames there are too many mismatched keypoints. When I wanted to find the euclidean distance between these mistmatched keypoints it would results into a either very big previous distance or small current distance. The outcome of both of these scenarios is that the distRatio variable will be much greater than of those variables calculated based on properly matched keypoints. If the number of these outliers grow beyond a point, the median filter will not be able to filter the outlier properly anymore and as a result an unreasonable TTC will be returned.
 
 
-Case 2: Detector: FAST, Descriptor: BRISK, Frame 5 
+### Case 2: Detector: FAST, Descriptor: BRISK, Frame 5 
 
 <img src="results/Figs/FAST-BRISK-Frame5-Rect.png">
-_Figure 2: Lidar  TTC: 15.91 s Camera TTC: 99.56 s_
+Figure 2: Lidar  TTC: 15.91 s Camera TTC: 99.56 s
 
 
+### Improvement
 
 One important issue with the camera-based TTC calculation is that it will find all sort of matched keypoint as long as the keypoint is located in roi; however, by looking at above cases is is clear that many of the matched keypoints in roi are not actually located on the front car. They can be some keypoint on the ground, on side cars, or even very far objects.
 I have implemented an additional filter to reduce the effect of the wrong points. This filter works based on limiting the rectangular roi into a circular area inscribed into the rectangular roi. With this method, the keypoints located on the very corners of roi will not be included in the TTC calculations. 
 
 <img src="results/Figs/AKAZE-FREAK-Frame10-Rect_vs_Circ.png">
 
-_Figure 3: As seen in (b) there are many matched keypoints found that are not actually representing the front car (they are highlighted in the shown yellow areas). To imporve TTC calculation, a circlular sub-roi was created to furhter filter out the keypoints, shown in (d). This process has improved TTC calculation generally among most of detector/descriptor pairs._
+Figure 3: As seen in (b) there are many matched keypoints found that are not actually representing the front car (they are highlighted in the shown yellow areas). To imporve TTC calculation, a circlular sub-roi was created to furhter filter out the keypoints, shown in (d). This process has improved TTC calculation generally among most of detector/descriptor pairs.
 
 
 ad
