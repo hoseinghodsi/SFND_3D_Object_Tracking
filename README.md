@@ -227,10 +227,10 @@ _Figure 1: As it can be seen, the camera-based TTC is significantly larger than 
 Case 2: Detector: FAST, Descriptor: BRISK, Frame 5 
 
 <img src="results/Figs/FAST-BRISK-Frame5-Rect.png">
-_Figure 2:_ 
-
--LIDAR  TTC: 15.91 s
--CAMERA TTC: 99.56 s
+_Figure 2: Lidar  TTC: 15.91 s Camera TTC: 99.56 s_
 
 
-case 3: 
+One important issue with the camera-based TTC calculation is that it will find all sort of matched keypoint as long as the keypoint is located in roi; however, by looking at above cases is is clear that many of the matched keypoints in roi are not actually located on the front car. They can be some keypoint on the ground, on side cars, or even very far objects.
+I have implemented an additional filter to reduce the effect of the wrong points. This filter works based on limiting the rectangular roi into a circular area inscribed into the rectangular roi. With this method, the keypoints located on the very corners of roi will not be included in the TTC calculations. Look at figure 3.
+
+<img src="results/Figs/AKAZE-FREAK-Frame10-Rect_vs_Circ.png">
