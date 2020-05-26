@@ -242,6 +242,9 @@ Figure 3: As seen in (b) there are many matched keypoints found that are not act
 
 
 ## Performance evaluation 2
-For this part, several detector/descriptor pairs were empoloyed to find the camera-based TTC. Based on the improvement section described above, I also incorporated inscribed circle roi and two additional filters that are bascially the inscribed circle roi; whoever their diameters are 97.5% and 95% of the actual inscribed circle. 
+For this part, several detector/descriptor pairs were empoloyed to find the camera-based TTC. Based on the improvement section described above, I also incorporated inscribed circle roi and two additional filters that are bascially the inscribed circle roi; however, their diameters are 97.5% and 95% of the actual inscribed circle. 
 
 <img src="results/Figs/ResultsTable.png">
+
+### Findings:
+1- HARRIS detector was not able to reliably calculate TTC. Many frames would get zero or NAN values. Therefore, HARRIS detector is removed from the results. 
