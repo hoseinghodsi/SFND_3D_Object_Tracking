@@ -227,9 +227,9 @@ _Figure 1: As it can be seen, the camera-based TTC is significantly larger than 
 Case 2: Detector: FAST, Descriptor: BRISK, Frame 5 
 
 <img src="results/Figs/FAST-BRISK-Frame5-Rect.png">
-_Figure 2: 
-LIDAR  TTC: 15.91 s
-CAMERA TTC: 99.56 s_
+_Figure 2:_ 
+_ * LIDAR  TTC: 15.91 s
+* CAMERA TTC: 99.56 s_
 
 
 case 3: 
