@@ -248,3 +248,16 @@ For this part, several detector/descriptor pairs were empoloyed to find the came
 
 ### Findings:
 1- HARRIS detector was not able to reliably calculate TTC. Many frames would get zero or NAN values. Therefore, HARRIS detector is removed from the results. 
+
+2- The mean value of difference in TTCs (lidar-based - camera-based) using the original rectangular roi is 1.689 s
+
+3- The mean value of difference in TTCs (lidar-based - camera-based) using the inscribed-circle roi is 1.089 s
+
+3- The mean value of difference in TTCs (lidar-based - camera-based) using the shrinked inscribed-circles are 1.13.35 s and 1.9966 s.
+
+4- It can be concluded that the best inscribed-circle roi is the unshrinked version. It has yeilded a 35.6% improvement in reducing the differene in TTC measurements. Other inscriber-circle approaches were found to be unreliable as many important keypoints were filtered out. 
+
+## Top detector/descriptor pair for rectangular full-roi (mean difference in TTC):
+1- SHITOMASI/SIFT -> 0.336 s
+2- SIFT/SIFT -> 0.478 s
+3- SIFT/BRISK -> 0.450 s
